@@ -15,4 +15,6 @@ contract Register {
     }
 }
 
+// Deployed at: 0xd840216413385AbD22C022fE0A6c68f79D98D3f7
+
 // End
