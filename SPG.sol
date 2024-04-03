@@ -22,3 +22,5 @@ contract SPG is ERC20, AccessControl {
         return 2;
     }    
 }
+
+// Deployed at 0x22Bafc1d097A6d81D9a7AC47faF1F56b3538c65d
