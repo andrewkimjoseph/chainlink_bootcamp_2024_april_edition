@@ -60,11 +60,11 @@
 	},
 	"sources": {
 		"Register.sol": {
-			"keccak256": "0x736acbbe4331716e1e8687a8c30489f4fd7144472cf33a7315a8ecacc8a346de",
+			"keccak256": "0x5f0c34632ebd71d7ed57b357a77d892b2c9913d3b6b9ebcfa8023ea9d74359d8",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5e88886f188e139c81e901a9289d76d36a00d9682d53f9a10135878e83e218a8",
-				"dweb:/ipfs/Qmej5pLMmuqDW2z67rHV9MiP2PPgYNF1Mr5cz1KR9aL9X1"
+				"bzz-raw://834cfd0d396ce54d1b983222c1b0b2e5f9f967bb2cfca4464ba17a36064c1c02",
+				"dweb:/ipfs/QmTTdbBjBrTvLVpRfcfPfYwZYwoFJhw6SrLTZ6zrChH8am"
 			]
 		}
 	},

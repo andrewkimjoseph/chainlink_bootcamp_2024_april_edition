@@ -23,4 +23,7 @@ contract SPG is ERC20, AccessControl {
     }    
 }
 
-// Deployed at 0x22Bafc1d097A6d81D9a7AC47faF1F56b3538c65d
+
+// Network Deployed: Ethereum Sepolia
+// Address Deployed: 0x22Bafc1d097A6d81D9a7AC47faF1F56b3538c65d
+

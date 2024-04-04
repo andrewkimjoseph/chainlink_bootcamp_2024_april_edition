@@ -139,11 +139,11 @@
 			]
 		},
 		"SPGShop.sol": {
-			"keccak256": "0xc08bdaf639c3a25aa1db6dc207d1934ae740dacb2908b63c37557d9d2012b6e4",
+			"keccak256": "0x6b46b1fd541a9bc829ca2f7d0b13cc56fb5dacaab3a8d2f34f1a013f373e19e2",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://7bf05ef95c788eb914d4fc1d03606a50055a21626bba2daa96258931130ff99a",
-				"dweb:/ipfs/QmWTc3piYzBjeAR2ru4HcaHQTPxx3aCx4AdGMaQ29HhGKK"
+				"bzz-raw://6a66d422bad3ec2c993cce4ec2007f7d0e3174ea916ec80f8d642cea4fbf827b",
+				"dweb:/ipfs/QmZxzA9XzoXo6yTC6ewjFAtaJ1GkLaZ72PJMc12FcZBzG7"
 			]
 		}
 	},

@@ -50,4 +50,7 @@ contract RegisterAccess {
         }    
 }
 
-// Deployed at: 0xDE2116AB07393F2F03B5dB3dc6aB3946a488641a
+
+// Network Deployed: Ethereum Sepolia
+// Address Deployed: 0xDE2116AB07393F2F03B5dB3dc6aB3946a488641a
+
