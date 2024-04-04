@@ -129,5 +129,5 @@ contract TransferUSDCBasic {
 
 
 // Network Deployed: Avalance Fuji
-// Address Deployed: 0x21e21c299d9A1081F86bDa58bEED425Aff7A429e
+// Address Deployed: 0xc0133946C1BA0c3270a152421513865D13ac5A09
 
