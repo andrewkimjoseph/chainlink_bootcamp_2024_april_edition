@@ -635,11 +635,11 @@
 			]
 		},
 		"CrossChainPriceNFT.sol": {
-			"keccak256": "0x92e63d897cb0d0d9dfe502ac52dbdb37c7fdb40d57f9baf4844d7f9639f019b6",
+			"keccak256": "0xaea9a25c0aad929ad628d72231cd9f53e01dbfa86b4deba20e0fc7f951ef56c6",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://3a817a4fb7b53e3c03973d73f3424b7f3f4c33b6f516232c77c3187a38086b27",
-				"dweb:/ipfs/QmQwaiuHDW132KEiwNEYVSuDohHtxRPsKBXd7r2EHGuyxG"
+				"bzz-raw://bc03706241d8f8f6da17780f36031ca75727c62198a56262b1a66bdc9152eff8",
+				"dweb:/ipfs/QmWyBJNTFWkZMux5m3L9Y16izUcdHnoBV1hJwQ4wHT7A98"
 			]
 		}
 	},
