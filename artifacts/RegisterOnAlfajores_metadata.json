@@ -1,0 +1,72 @@
+{
+	"compiler": {
+		"version": "0.8.19+commit.7dd6d404"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "getInfo",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_info",
+						"type": "string"
+					}
+				],
+				"name": "setInfo",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"RegisterOnAlfajores.sol": "RegisterOnAlfajores"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"RegisterOnAlfajores.sol": {
+			"keccak256": "0x8c8833efdfc7275a760ff6731665a9ccbe99ee8e4f06831e72fc52a179c841e7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c8bc3751f919ab399c16e17ec23d1830a9f904c793b18377ece7a724cec57fde",
+				"dweb:/ipfs/QmXFnRyw6ED7QJR8txhN5A5LEkLQUWjxs3TbjFHDBhAneW"
+			]
+		}
+	},
+	"version": 1
+}
