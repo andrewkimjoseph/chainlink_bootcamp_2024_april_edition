@@ -170,7 +170,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"RegisterAccessCelo.sol": "RegisterAccess"
+			"RegisterAccessCelo.sol": "RegisterAccessCelo"
 		},
 		"evmVersion": "paris",
 		"libraries": {},
@@ -185,11 +185,11 @@
 	},
 	"sources": {
 		"RegisterAccessCelo.sol": {
-			"keccak256": "0xf3ccf765e324d1089dcc1a3fa41e0e5b6bc2a432199bc412720239a4d485ddc9",
+			"keccak256": "0xfcc9b4df546b26960a574a902055335868eab0134d26c025d67c3001a5667512",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8c8e04d2990c22081077492b75d7162b1ec359e93ea3703302eb4068061d7e17",
-				"dweb:/ipfs/QmdVrVqFtUh2oYuLmDm77xraAryU7V1gxHeKr3797vqPyH"
+				"bzz-raw://c25aa8237578e9640abead3c68bbc4f955cdfdc9202ef0db30f25b53266b34b7",
+				"dweb:/ipfs/QmcbMV1GhRb2heQH1UkyZHe7sjskqcpU9wqeouhKbP7L7H"
 			]
 		}
 	},

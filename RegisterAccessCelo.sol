@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
  
-contract RegisterAccess {
+contract RegisterAccessCelo {
         string[] private info;
         address public owner;
         mapping (address => bool) public allowlist;
@@ -51,7 +51,8 @@ contract RegisterAccess {
 }
 
 
-// Network Deployed: Ethereum Sepolia
-// Address Deployed: 0xDE2116AB07393F2F03B5dB3dc6aB3946a488641a
+// Network Deployed: Celo Alfajores
+// Address Deployed:
+// 1. 0xDE2116AB07393F2F03B5dB3dc6aB3946a488641a
 
-// 0xdaB7EB2409fdD974CF93357C61aEA141729AEfF5
+// 0x0Ea89A815b8fCB113FC7525F1e720CEF392ceFdB

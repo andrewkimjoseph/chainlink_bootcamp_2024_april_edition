@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.8.19+commit.7dd6d404"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"RegisterAccess.sol": "PamojaApp"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"RegisterAccess.sol": {
+			"keccak256": "0x1c1fd659ef56fdc71b83a8f5584337fe448fa1c69ba18808ad6fafd38327dd26",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0cdf372af85eef9f6286072766d93e528361923b5265b383cbc000a2c89a4fef",
+				"dweb:/ipfs/QmVTUQPKrNNmL6iYSMPwtbXySNW751m9iY8UC3sntimKgA"
+			]
+		}
+	},
+	"version": 1
+}
