@@ -11,262 +11,472 @@ struct Contributor {
 
 struct Saving {
     uint256 _id;
-    address _creator;
-    address[4] _contributors;
-    uint256[4] _contributions;
-    uint256 _currentRecipientIndex;
-    uint256 _amount;
+    address _creatingContributor;
 }
 
-contract PamojaAppContract {
-    Contributor[] public contributors;
-    uint256 public contributorId;
-    mapping(address => bool) public contributorExistsInContributors;
+contract PamojaApp {
+    Contributor[] private allContributors;
+    uint256 private contributorId;
+    mapping(address => bool) private contributorExists;
 
-    Saving[] public savings;
-    uint256 public savingId;
+    Saving[] private allSavings;
+    uint256 private savingId;
 
-    ERC20 CUSDAlfajoresContract =
-        ERC20(0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1);
+    mapping(uint256 => mapping(uint256 => address))
+        private allContributorsInSavings;
+    mapping(uint256 => mapping(uint256 => uint256))
+        private allContributionsOfSavings;
+    mapping(uint256 => uint256) private allRoundsOfSavings;
+    mapping(uint256 => uint256) private allNumberOfContributorsInSavings;
+    mapping(uint256 => uint256) private allAmountsHeldInSavings;
 
-    event GetContributor(
-        uint256 _id,
-        address _address,
-        string _username,
-        bool _isCreated
-    );
+    Saving[] private contributorSavings;
 
-    event GetSaving(
-        uint256 _id,
-        address _creator,
-        address[4] _contributors,
-        uint256[4] _contributions,
-        uint256 _amount
-    );
+    ERC20 CUSD = ERC20(0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1);
 
-    function addContributorToDirectory(string memory _username)
-        public
-        returns (Contributor memory)
-    {
-        if (contributorExistsInContributors[msg.sender]) {
+    modifier onlyCreatingContributor(uint256 _savingId) {
+        require(
+            msg.sender == allSavings[_savingId]._creatingContributor,
+            "Only Creating Contributor can do this."
+        );
+        _;
+    }
+
+    modifier onlyContributorInSaving(uint256 _savingId) {
+        require(
+            _checkIfContributorExistsInSaving(_savingId, msg.sender),
+            "Only a Contributor in the Saving can do this."
+        );
+        _;
+    }
+
+    function addContributorToDirectory(
+        string memory _username,
+        address _contributorAddress
+    ) public returns (Contributor memory) {
+        if (checkIfContributorExists(_contributorAddress)) {
             Contributor
-                memory _existingConstributor = getContributorFromDirectory(
-                    msg.sender
+                memory existingContributor = getContributorFromDirectory(
+                    _contributorAddress
                 );
-            emit GetContributor(
-                _existingConstributor._id,
-                _existingConstributor._address,
-                _existingConstributor._username,
-                false
-            );
-            return _existingConstributor;
+
+            return existingContributor;
         } else {
-            contributors.push(
-                Contributor(contributorId++, msg.sender, _username)
+            allContributors.push(
+                Contributor(contributorId++, _contributorAddress, _username)
             );
-            contributorExistsInContributors[msg.sender] = true;
-            Contributor memory _newContributor = getContributorFromDirectory(
-                msg.sender
+            contributorExists[_contributorAddress] = true;
+            Contributor memory newContributor = getContributorFromDirectory(
+                _contributorAddress
             );
-            emit GetContributor(
-                _newContributor._id,
-                _newContributor._address,
-                _newContributor._username,
-                true
-            );
-            return _newContributor;
+            return newContributor;
         }
     }
 
     function getContributorFromDirectory(address _address)
         public
+        view
         returns (Contributor memory)
     {
-        if (!contributorExistsInContributors[msg.sender]) {
+        if (!checkIfContributorExists(_address)) {
             revert("Contributor does not exist.");
         }
 
         uint256 contributorIndex = _getContributorIndex(_address);
 
-        Contributor memory fetchedContributor = contributors[contributorIndex];
-
-        emit GetContributor(
-            fetchedContributor._id,
-            fetchedContributor._address,
-            fetchedContributor._username,
-            true
-        );
+        Contributor memory fetchedContributor = allContributors[
+            contributorIndex
+        ];
 
         return fetchedContributor;
     }
 
-    function createAmountInSaving(uint256 _amount)
+    function createAmountInSaving(uint256 _amount, address _creatingContributor)
         public
         returns (Saving memory)
     {
-        if (!contributorExistsInContributors[msg.sender])
+        if (!checkIfContributorExists(_creatingContributor))
             revert("Contributor does not exist.");
 
         Saving memory newSaving;
-        newSaving._amount = _amount;
         newSaving._id = savingId++;
-        newSaving._creator = msg.sender;
-        newSaving._contributors[0] = msg.sender;
-        newSaving._currentRecipientIndex = 0;
-        savings.push(newSaving);
+        newSaving._creatingContributor = _creatingContributor;
+        allSavings.push(newSaving);
 
-        emit GetSaving(
-            newSaving._id,
-            newSaving._creator,
-            newSaving._contributors,
-            newSaving._contributions,
-            newSaving._amount
-        );
+        allContributorsInSavings[newSaving._id][0] = _creatingContributor;
+        allContributionsOfSavings[newSaving._id][0] = _amount;
+
+        allRoundsOfSavings[newSaving._id] = 0;
+
+        allNumberOfContributorsInSavings[newSaving._id] = 1;
+
+        allAmountsHeldInSavings[newSaving._id] = _amount;
 
         return newSaving;
     }
 
     function updateContributorInSaving(
+        uint256 _savingId,
+        address _creatingContributor,
         address _newContributor,
-        address _savingCreator,
-        uint256 _savingId
-    ) public returns (Saving memory) {
-        if (!contributorExistsInContributors[_newContributor])
-            revert("Contributor does not exist.");
+        uint256 _amount
+    ) public onlyContributorInSaving(_savingId) returns (Saving memory) {
+        if (
+            !checkIfContributorExists(_creatingContributor) ||
+            !checkIfContributorExists(_newContributor)
+        ) revert("Contributor does not exist.");
 
-        uint256 savingIndex = 0;
+        uint256 oldNumberOfContributorsInSaving = allNumberOfContributorsInSavings[
+                _savingId
+            ];
 
-        for (uint256 index = 0; index < contributors.length; index++) {
-            Saving memory runningSaving = savings[index];
-            if (
-                runningSaving._id == _savingId &&
-                runningSaving._creator == _savingCreator
-            ) {
-                savingIndex = index;
-                break;
-            }
-        }
+        allContributorsInSavings[_savingId][
+            oldNumberOfContributorsInSaving
+        ] = _newContributor;
 
-        Saving memory _oldSaving = savings[savingIndex];
+        uint256 oldAmountCurrentlyHeldInSavings = allAmountsHeldInSavings[
+            _savingId
+        ];
+        uint256 newAmountCurrentlyHeldInSavings = oldAmountCurrentlyHeldInSavings +
+                _amount;
 
-        uint256 newContributorIndex = _oldSaving._contributors.length + 1;
-        _oldSaving._contributors[newContributorIndex] = _newContributor;
+        allContributionsOfSavings[_savingId][
+            oldNumberOfContributorsInSaving
+        ] = _amount;
 
-        Saving memory updatedSaving = _oldSaving;
+        uint256 newNumberOfContributorsInSavings = oldNumberOfContributorsInSaving +
+                1;
 
-        emit GetSaving(
-            updatedSaving._id,
-            updatedSaving._creator,
-            updatedSaving._contributors,
-            updatedSaving._contributions,
-            updatedSaving._amount
-        );
+        allNumberOfContributorsInSavings[
+            _savingId
+        ] = newNumberOfContributorsInSavings;
 
-        return updatedSaving;
-    }
+        allAmountsHeldInSavings[_savingId] = newAmountCurrentlyHeldInSavings;
 
-    function updateAmountInSaving(uint256 _savingId, address _savingCreator)
-        public
-        returns (Saving memory)
-    {
-        if (!contributorExistsInContributors[msg.sender])
-            revert("Contributor does not exist.");
-
-        uint256 savingIndex = 0;
-
-        for (uint256 index = 0; index < contributors.length; index++) {
-            Saving memory runningSaving = savings[index];
-            if (
-                runningSaving._id == _savingId &&
-                runningSaving._creator == _savingCreator
-            ) {
-                savingIndex = index;
-                break;
-            }
-        }
-
-        Saving memory _oldSaving = savings[savingIndex];
-
-        uint256 newContributorIndex = _oldSaving._contributors.length + 1;
-        _oldSaving._contributors[newContributorIndex] = msg.sender;
-        _oldSaving._contributions[newContributorIndex] = _oldSaving._amount;
-
-        Saving memory updatedSaving = _oldSaving;
-
-        emit GetSaving(
-            updatedSaving._id,
-            updatedSaving._creator,
-            updatedSaving._contributors,
-            updatedSaving._contributions,
-            updatedSaving._amount
-        );
-
-        return updatedSaving;
+        return allSavings[_savingId];
     }
 
     function getSaving(uint256 _savingId, address _savingCreator)
         public
+        view
         returns (Saving memory)
     {
-        if (!contributorExistsInContributors[msg.sender]) {
+        if (!checkIfContributorExists(_savingCreator)) {
             revert("Contributor does not exist.");
         }
+
         uint256 savingIndex = _getSavingIndex(_savingId, _savingCreator);
 
-        Saving memory updatedSaving = savings[savingIndex];
-
-        emit GetSaving(
-            updatedSaving._id,
-            updatedSaving._creator,
-            updatedSaving._contributors,
-            updatedSaving._contributions,
-            updatedSaving._amount
-        );
-        return updatedSaving;
+        return allSavings[savingIndex];
     }
 
-    function getSavingsOfContributor(address _contributor)
+    function getAllSavings() public view returns (Saving[] memory) {
+        return allSavings;
+    }
+
+    function _checkIfContributorExistsInSaving(
+        uint256 _savingId,
+        address _checkingContributor
+    ) private view returns (bool) {
+        uint256 numberOfContributorsInSavings = allNumberOfContributorsInSavings[
+                _savingId
+            ];
+
+        for (
+            uint256 contributorIndex = 0;
+            contributorIndex < numberOfContributorsInSavings;
+            contributorIndex++
+        ) {
+            if (
+                allContributorsInSavings[_savingId][contributorIndex] ==
+                _checkingContributor
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function getNumberOfContributionsOfContributor(address _contributorAddress)
         public
+        view
+        returns (uint256)
     {
+        uint256 contributionsIndex = 0;
+
+        uint256 lengthOfContributionsOfContributor = 0;
+
+        for (
+            uint256 savingsIndex = 0;
+            savingsIndex < savingId;
+            savingsIndex++
+        ) {
+            for (
+                uint256 contributorIndex = 0;
+                contributorIndex <
+                allNumberOfContributorsInSavings[savingsIndex];
+                contributorIndex++
+            ) {
+                if (
+                    allContributorsInSavings[savingsIndex][contributorIndex] ==
+                    _contributorAddress
+                ) {
+                    lengthOfContributionsOfContributor += 1;
+                    contributionsIndex++;
+                }
+            }
+        }
+
+        return contributionsIndex;
+    }
+
+    function getContributionsOfContributor(address _contributorAddress)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory contributions = new uint256[](
+            getNumberOfContributionsOfContributor(_contributorAddress)
+        );
+
+        uint256 contributionsIndex = 0;
+
+        for (
+            uint256 savingsIndex = 0;
+            savingsIndex < savingId;
+            savingsIndex++
+        ) {
+            for (
+                uint256 contributorIndex = 0;
+                contributorIndex <
+                allNumberOfContributorsInSavings[savingsIndex];
+                contributorIndex++
+            ) {
+                if (
+                    allContributorsInSavings[savingsIndex][contributorIndex] ==
+                    _contributorAddress
+                ) {
+                    contributions[
+                        contributionsIndex
+                    ] = allContributionsOfSavings[savingsIndex][
+                        contributorIndex
+                    ];
+                    contributionsIndex++;
+                }
+            }
+        }
+
+        return contributions;
+    }
+
+    function getNumberOfSavingsCreatedByContributor(address _address)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 lengthOfSavingsCreatedByContributor = 0;
+
         for (
             uint256 savingIndex = 0;
-            savingIndex < savings.length;
+            savingIndex < allSavings.length;
             savingIndex++
         ) {
-            Saving memory runningSaving = savings[savingIndex];
+            if (allSavings[savingIndex]._creatingContributor == _address) {
+                lengthOfSavingsCreatedByContributor += 1;
+            }
+        }
 
-            if (runningSaving._creator == _contributor) {
-                emit GetSaving(
-                    runningSaving._id,
-                    runningSaving._creator,
-                    runningSaving._contributors,
-                    runningSaving._contributions,
-                    runningSaving._amount
-                );
+        return lengthOfSavingsCreatedByContributor;
+    }
+
+    function getSavingsCreatedByContributor(address _contributorAddress)
+        public
+        view
+        returns (Saving[] memory)
+    {
+        Saving[] memory savingsCreatedByContributor = new Saving[](
+            getNumberOfSavingsCreatedByContributor(_contributorAddress)
+        );
+
+        for (
+            uint256 savingsIndex = 0;
+            savingsIndex < savingsCreatedByContributor.length;
+            savingsIndex++
+        ) {
+            savingsCreatedByContributor[savingsIndex] = allSavings[
+                savingsIndex
+            ];
+        }
+
+        return savingsCreatedByContributor;
+    }
+
+    function getContributionsOfSaving(uint256 _savingId)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory contributions = new uint256[](
+            allNumberOfContributorsInSavings[_savingId]
+        );
+
+        for (
+            uint256 contributorIndex = 0;
+            contributorIndex < allNumberOfContributorsInSavings[_savingId];
+            contributorIndex++
+        ) {
+            contributions[contributorIndex] = allContributionsOfSavings[
+                _savingId
+            ][contributorIndex];
+        }
+
+        return contributions;
+    }
+
+    function getAllContributors() public view returns (Contributor[] memory) {
+        return allContributors;
+    }
+
+    function getContributingCreator(uint256 _savingId)
+        public
+        view
+        returns (address)
+    {
+        return allSavings[_savingId]._creatingContributor;
+    }
+
+    /**
+     * @dev Allows the creating contributor to withdraw the total amount contributed by all contributors in the saving.
+     * If the withdrawal is successful, the round count of the saving increases by 1.
+     * If the round count equals the number of contributors, the round count resets to 0.
+     */
+    function withdrawToRecipientContributor(uint256 _savingId)
+        public
+        onlyCreatingContributor(_savingId)
+    {
+        uint256[] memory contributionsInSavings = getContributionsOfSaving(
+            _savingId
+        );
+
+        uint256 amountToWithdraw = 0;
+
+        for (
+            uint256 contributionIndex = 0;
+            contributionIndex < contributionsInSavings.length;
+            contributionIndex++
+        ) {
+            amountToWithdraw += contributionsInSavings[contributionIndex];
+        }
+
+        uint256 amountToWithdrawEthers = amountToWithdraw /
+            (10**uint256(CUSD.decimals()));
+
+        bool withdrawalSuccessful = CUSD.transfer(
+            _getRecipientContributor(_savingId),
+            amountToWithdrawEthers
+        );
+
+        if (withdrawalSuccessful) {
+            revert("Withdrawal unsuccessful.");
+        }
+
+        allRoundsOfSavings[_savingId] += 1;
+
+        if (allRoundsOfSavings[_savingId] == contributionsInSavings.length) {
+            allRoundsOfSavings[_savingId] = 0;
+        }
+
+        _updateContributionsInSaving(_savingId);
+        allAmountsHeldInSavings[_savingId] = 0;
+
+        // Check if it was the final withdrawal.
+    }
+
+    function _getRecipientContributor(uint256 _savingId)
+        private
+        view
+        onlyCreatingContributor(_savingId)
+        onlyContributorInSaving(_savingId)
+        returns (address _recipientContributor)
+    {
+        uint256 receivingContributorIndex = 0;
+        uint256 currentRoundOfSaving = allRoundsOfSavings[_savingId];
+        uint256 numberOfContributorsInSaving = allNumberOfContributorsInSavings[
+            _savingId
+        ];
+
+        if (numberOfContributorsInSaving == 1) {
+            return allContributorsInSavings[_savingId][0];
+        }
+
+        if (currentRoundOfSaving == 0) {
+            receivingContributorIndex = numberOfContributorsInSaving;
+        } else {
+            receivingContributorIndex =
+                numberOfContributorsInSaving -
+                currentRoundOfSaving;
+        }
+
+        return allContributorsInSavings[_savingId][receivingContributorIndex];
+    }
+
+    function _updateContributionsInSaving(uint256 _savingId)
+        private
+        onlyCreatingContributor(_savingId)
+        onlyContributorInSaving(_savingId)
+    {
+        uint256 numberOfContributorsInSaving = allNumberOfContributorsInSavings[
+            _savingId
+        ];
+
+        for (uint256 index = 0; index < numberOfContributorsInSaving; index++) {
+            allContributionsOfSavings[_savingId][index] = 0;
+        }
+    }
+
+    function checkIfContributorExists(address _address)
+        public
+        view
+        returns (bool)
+    {
+        return contributorExists[_address];
+    }
+
+    function _getNumberOfContributorSavings(address _contributor)
+        private
+        view
+        returns (uint256)
+    {
+        uint256 numberOfContributorSavings = 0;
+
+        for (
+            uint256 savingIndex = 0;
+            savingIndex < allSavings.length;
+            savingIndex++
+        ) {
+            Saving memory runningSaving = allSavings[savingIndex];
+
+            if (runningSaving._creatingContributor == _contributor) {
+                numberOfContributorSavings++;
                 continue;
             }
 
             for (
                 uint256 contributorIndex = 0;
-                contributorIndex < runningSaving._contributors.length;
+                contributorIndex < 5;
                 contributorIndex++
             ) {
-                address runningContributor = runningSaving._contributors[
-                    contributorIndex
-                ];
+                address runningContributor = msg.sender;
 
                 if (_contributor == runningContributor) {
-                    emit GetSaving(
-                        runningSaving._id,
-                        runningSaving._creator,
-                        runningSaving._contributors,
-                        runningSaving._contributions,
-                        runningSaving._amount
-                    );
+                    numberOfContributorSavings++;
                     break;
                 }
             }
         }
+
+        return numberOfContributorSavings;
     }
 
     function _getContributorIndex(address _contributorAddress)
@@ -276,8 +486,8 @@ contract PamojaAppContract {
     {
         uint256 locationIndex = 0;
 
-        for (uint256 index = 0; index < contributors.length; index++) {
-            if (contributors[index]._address == _contributorAddress) {
+        for (uint256 index = 0; index < allContributors.length; index++) {
+            if (allContributors[index]._address == _contributorAddress) {
                 locationIndex = index;
                 break;
             }
@@ -286,18 +496,18 @@ contract PamojaAppContract {
         return locationIndex;
     }
 
-    function _getSavingIndex(uint256 _savingId, address _savingCreator)
+    function _getSavingIndex(uint256 _savingId, address _creatingContributor)
         private
         view
         returns (uint256)
     {
         uint256 savingIndex = 0;
 
-        for (uint256 index = 0; index < contributors.length; index++) {
-            Saving memory runningSaving = savings[index];
+        for (uint256 index = 0; index < allContributors.length; index++) {
+            Saving memory runningSaving = allSavings[index];
             if (
                 runningSaving._id == _savingId &&
-                runningSaving._creator == _savingCreator
+                runningSaving._creatingContributor == _creatingContributor
             ) {
                 savingIndex = index;
                 break;
@@ -306,20 +516,26 @@ contract PamojaAppContract {
 
         return savingIndex;
     }
-
-    // function _checkIfSenderAlreadyContributed(Saving memory _oldSaving)
-    //     private
-    //     view
-    //     returns (bool)
-    // {
-    //     bool senderAlreadyContributed;
-
-    //     for (uint256 i = 0; i < _oldSaving._contributors.length; i++) {
-    //         if (_oldSaving._contributors[i] == msg.sender) {
-    //             senderAlreadyContributed = true;
-    //             break;
-    //         }
-    //     }
-    //     return senderAlreadyContributed;
-    // }
 }
+
+// _username: andrewkimjoseph
+// _contributorAddress: 0xdaB7EB2409fdD974CF93357C61aEA141729AEfF5
+
+// _username: chrisbakke
+// _contributorAddress: 0xE49B05F2c7DD51f61E415E1DFAc10B80074B001A
+
+// _username: johnamon
+// _contributorAddress: 0x1c30082ae6F51E31F28736be3f715261223E4EDe
+
+// _amount: 5
+// _creatingContributor: 0xdaB7EB2409fdD974CF93357C61aEA141729AEfF5
+
+// _savingId: 0
+// _creatingContributor: 0xdaB7EB2409fdD974CF93357C61aEA141729AEfF5
+// _newContributor: 0xE49B05F2c7DD51f61E415E1DFAc10B80074B001A
+// _amount: 10
+
+// _savingId: 0
+// _creatingContributor: 0xdaB7EB2409fdD974CF93357C61aEA141729AEfF5
+// _newContributor: 0x1c30082ae6F51E31F28736be3f715261223E4EDe
+// _amount: 15
